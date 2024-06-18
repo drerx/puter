@@ -109,6 +109,32 @@ export const determine_fetch_remote = (remote_name_or_url, remotes) => {
 }
 
 /**
+ * Determine the remot/url parameters to pass to git.fetch(), based on a `<repository>` string.
+ * @param remote_name_or_url Command-line parameter, either a remote name, an url, or undefined.
+ * @param remotes List of all existing remotes, from `git.listRemotes()`
+ * @returns {string} The URL of the remote to use
+ */
+export const determine_remote_url = async (remote_name_or_url, remotes, git_config) => {
+    if (!remote_name_or_url) {
+        // TODO:
+        // "When the command line does not specify where to push with the <repository> argument,
+        // branch.*.remote configuration for the current branch is consulted to determine where to push.
+        // If the configuration is missing, it defaults to origin."
+        return {};
+    }
+
+    // For urls, just return them
+    if (URL.canParse(remote_name_or_url))
+        return remote_name_or_url;
+
+    // Look up the remote
+    const remote_data = remotes.find(it => it.remote === remote_name_or_url);
+    if (!remote_data)
+        throw new Error(`'${remote_name_or_url}' does not appear to be a git repository`);
+    return remote_data.url;
+}
+
+/**
  * Divide up the positional arguments into those before the `--` separator, and those after it.
  * @param arg_tokens Tokens array from parseArgs({ tokens: true })
  * @returns {{before: string[], after: string[]}}
